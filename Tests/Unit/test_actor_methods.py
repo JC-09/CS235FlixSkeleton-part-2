@@ -1,4 +1,5 @@
 from domainmodel.actor import Actor
+
 import pytest
 
 class TestActorMethods:
