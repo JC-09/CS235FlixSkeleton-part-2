@@ -1,6 +1,4 @@
-from domainmodel.watchlist import WatchList
-from domainmodel.movie import Movie
-from domainmodel.user import User
+from domainmodel.model import User, Movie, WatchList
 from datetime import datetime
 import pytest
 

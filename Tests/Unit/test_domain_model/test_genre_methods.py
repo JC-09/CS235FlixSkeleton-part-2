@@ -1,4 +1,4 @@
-from domainmodel.genre import Genre
+from domainmodel.model import Genre
 import pytest
 
 

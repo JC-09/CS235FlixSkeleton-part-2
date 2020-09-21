@@ -1,7 +1,4 @@
-from domainmodel.movie import Movie
-from domainmodel.actor import Actor
-from domainmodel.director import Director
-from domainmodel.genre import Genre
+from domainmodel.model import Movie, Actor, Director, Genre
 import pytest
 class TestMovieMethods:
     def test_init(self):

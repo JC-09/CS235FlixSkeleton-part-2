@@ -1,6 +1,4 @@
-from domainmodel.movie import Movie
-from domainmodel.user import User
-from domainmodel.review import Review
+from domainmodel.model import Movie, User, Review
 from activitysimulations.watchingsimulation import MovieWatchingSimulation
 import pytest
 

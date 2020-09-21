@@ -1,4 +1,4 @@
-from domainmodel.director import Director
+from domainmodel.model import Director
 import pytest
 
 class TestDirectorMethods:

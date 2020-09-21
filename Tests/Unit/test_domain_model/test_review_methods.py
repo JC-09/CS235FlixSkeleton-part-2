@@ -1,5 +1,5 @@
-from domainmodel.movie import Movie
-from domainmodel.review import Review
+from domainmodel.model import Movie, Review
+
 
 class TestReviewMethods:
     def test_init(self):

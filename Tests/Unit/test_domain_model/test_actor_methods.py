@@ -1,4 +1,4 @@
-from domainmodel.actor import Actor
+from domainmodel.model import Actor
 
 import pytest
 

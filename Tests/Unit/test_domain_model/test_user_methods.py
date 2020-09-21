@@ -1,6 +1,5 @@
-from domainmodel.user import User
-from domainmodel.movie import Movie
-from domainmodel.review import Review
+from domainmodel.model import User, Movie, Review
+
 
 class TestUserMethods:
     def test_init(self):
