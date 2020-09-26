@@ -34,8 +34,8 @@ class TestActorMethods:
         actor3 = Actor("Not an Actor")
         actor1.add_actor_colleague(actor2)
 
-        assert len(actor1.actor_colleague) == 1
-        assert len(actor2.actor_colleague) == 1
+        assert actor1.get_number_of_colleagues() == 1
+        assert actor2.get_number_of_colleagues() == 1
 
     def test_check_if_this_actor_worked_with(self):
         actor1 = Actor("Angelina Jolie")

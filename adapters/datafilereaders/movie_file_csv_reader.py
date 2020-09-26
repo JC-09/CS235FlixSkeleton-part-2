@@ -31,7 +31,7 @@ class MovieFileCSVReader:
                 # Append to the movie data set
                 title = row['Title']
                 year = int(row['Year'])
-                movie = Movie(title, year)
+                movie = Movie(title, year, 4)
                 if (movie not in self.__dataset_of_movies):
                     self.__dataset_of_movies.append(movie)
                 # Store potential duplicated actors

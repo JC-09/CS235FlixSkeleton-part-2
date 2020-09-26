@@ -1,13 +1,14 @@
-from domainmodel.model import Movie, Review
-
+from domainmodel.model import Movie, Review, User
+from datetime import date
 
 class TestReviewMethods:
     def test_init(self):
-        movie = Movie("Moana", 2016)
+        user = User("username", "password")
+        movie = Movie("Moana", 2016, 1)
         review_text = "This movie was very enjoyable."
         rating = 8
-        review = Review(movie, review_text, rating)
-
+        review = Review(user, movie, review_text, rating, date.fromisoformat('2020-03-15'))
+        assert review.review_author == user
         assert repr(review.movie) == "<Movie Moana, 2016>"
         assert review.review_text == "This movie was very enjoyable."
         assert review.rating == 8
