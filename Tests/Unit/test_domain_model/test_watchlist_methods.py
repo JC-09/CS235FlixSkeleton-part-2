@@ -1,4 +1,4 @@
-from domainmodel.model import User, Movie, WatchList
+from CS235Flix.domainmodel.model import User, Movie, WatchList
 from datetime import datetime
 import pytest
 

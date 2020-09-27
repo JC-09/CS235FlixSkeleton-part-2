@@ -1,4 +1,4 @@
-from domainmodel.model import Movie, User
+from CS235Flix.domainmodel.model import Movie, User
 
 
 

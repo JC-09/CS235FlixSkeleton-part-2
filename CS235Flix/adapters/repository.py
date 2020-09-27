@@ -1,7 +1,6 @@
 import abc
 from typing import List
-from datetime import date
-from domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList
+from CS235Flix.domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList
 
 repo_instance = None
 

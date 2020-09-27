@@ -1,4 +1,4 @@
-from domainmodel.model import Movie, Actor, Director, Genre
+from CS235Flix.domainmodel.model import Movie, Actor, Director
 import pytest
 class TestMovieMethods:
     def test_init(self):

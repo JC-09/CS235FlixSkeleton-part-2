@@ -1,21 +1,9 @@
-from datetime import date, datetime
-from typing import List
+from datetime import date
 
 import pytest
 
-from adapters.repository import RepositoryException
-from adapters.memory_repository import MemoryRepository, populate
-from domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList, ModelException
-
-# TEST_DATA_PATH = "../../../adapters/datafiles/"
-TEST_DATA_PATH = "adapters/datafiles/"
-
-
-@pytest.fixture
-def in_memory_repo():
-    repo = MemoryRepository()
-    populate(TEST_DATA_PATH, repo)
-    return repo
+from CS235Flix.adapters.repository import RepositoryException
+from CS235Flix.domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList
 
 
 def test_repository_can_add_a_user(in_memory_repo):

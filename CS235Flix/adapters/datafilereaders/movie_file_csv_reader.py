@@ -1,7 +1,7 @@
 
 import csv
 
-from domainmodel.model import Movie, Actor, Genre, Director
+from CS235Flix.domainmodel.model import Movie, Actor, Genre, Director
 
 
 class MovieFileCSVReader:

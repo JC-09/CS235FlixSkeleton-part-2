@@ -1,5 +1,5 @@
-from domainmodel.model import Director
-import pytest
+from CS235Flix.domainmodel.model import Director
+
 
 class TestDirectorMethods:
 

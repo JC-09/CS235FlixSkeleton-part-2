@@ -1,4 +1,4 @@
-from domainmodel.model import User, Movie, Review
+from CS235Flix.domainmodel.model import User, Movie, Review
 from datetime import date
 
 class TestUserMethods:

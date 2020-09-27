@@ -1,5 +1,4 @@
-from domainmodel.model import Genre
-import pytest
+from CS235Flix.domainmodel.model import Genre
 
 
 class TestGenreMethods:

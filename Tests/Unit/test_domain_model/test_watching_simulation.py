@@ -1,5 +1,5 @@
-from domainmodel.model import Movie, User, Review
-from activitysimulations.watchingsimulation import MovieWatchingSimulation
+from CS235Flix.domainmodel.model import Movie, User, Review
+from CS235Flix.activitysimulations.watchingsimulation import MovieWatchingSimulation
 from datetime import date
 import pytest
 

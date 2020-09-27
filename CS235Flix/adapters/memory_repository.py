@@ -1,14 +1,12 @@
 import csv
 import os
-from datetime import date, datetime
+from datetime import datetime
 from typing import List
-
-from bisect import bisect, bisect_left, insort_left
 
 from werkzeug.security import generate_password_hash
 
-from adapters.repository import AbstractRepository
-from domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList, add_movie_attributes
+from CS235Flix.adapters.repository import AbstractRepository
+from CS235Flix.domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList, add_movie_attributes
 
 
 class MemoryRepository(AbstractRepository):

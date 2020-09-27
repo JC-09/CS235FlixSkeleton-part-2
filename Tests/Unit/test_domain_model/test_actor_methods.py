@@ -1,6 +1,5 @@
-from domainmodel.model import Actor
+from CS235Flix.domainmodel.model import Actor
 
-import pytest
 
 class TestActorMethods:
     def test_init(self):
