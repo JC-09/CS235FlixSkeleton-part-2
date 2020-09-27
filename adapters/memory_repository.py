@@ -28,7 +28,7 @@ class MemoryRepository(AbstractRepository):
             self._users.append(user)
 
     def get_user(self, username) -> User:
-        return next((user for user in self._users if user.user_name == username), None)
+        return next((user for user in self._users if user.user_name == username.lower()), None)
 
     def get_user_watched_movies(self, user: User) -> List[Movie]:
         if user in self._users:
@@ -63,7 +63,7 @@ class MemoryRepository(AbstractRepository):
             return actor.actor_colleague
         return None
 
-    def get_number_of_actors(self) -> int:
+    def get_total_number_of_actors(self) -> int:
         return len(self._actors)
 
     def add_director(self, director: Director):
@@ -80,7 +80,7 @@ class MemoryRepository(AbstractRepository):
                 return True
         return False
 
-    def get_number_of_directors(self) -> int:
+    def get_total_number_of_directors(self) -> int:
         return len(self._directors)
 
     def add_genre(self, genre: Genre):
@@ -89,6 +89,9 @@ class MemoryRepository(AbstractRepository):
 
     def get_genre(self, genre_name: str) -> Genre:
         return next((genre for genre in self._genres if genre.genre_name == genre_name), None)
+
+    def get_total_number_of_genres_in_repo(self):
+        return len(self._genres)
 
     def check_genre_existence(self, genre: Genre) -> bool:
         if isinstance(genre, Genre):
@@ -105,6 +108,9 @@ class MemoryRepository(AbstractRepository):
         return next((movie for movie in self._movies if (movie.title == title and movie.release_year == release_year)),
                     None)
 
+    def get_total_number_of_movies_in_repo(self):
+        return len(self._movies)
+
     def get_movie_by_index(self, index: int):
         movie = None
 
@@ -115,7 +121,7 @@ class MemoryRepository(AbstractRepository):
         return movie
 
     def get_movie_index_for_genre(self, genre_name: str):
-        genre = next((genre for genre in self._movie_index if genre.genre_name == genre_name), None)
+        genre = next((genre for genre in self._genres if genre.genre_name == genre_name), None)
         if genre is not None:
             movie_indexes = [movie.id for movie in genre.classified_movies]
         else:
@@ -165,6 +171,7 @@ class MemoryRepository(AbstractRepository):
 
     def add_review(self, review: Review):
         if isinstance(review, Review):
+            super().add_review(review)
             self._reviews.append(review)
 
     def get_reviews(self) -> List[Review]:
@@ -213,20 +220,6 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
         release_year = int(data_row[6])
         runtime = int(data_row[7])
 
-        # Add any new genres to repo
-        for genre in list_of_genres:
-            if not repo.check_genre_existence(genre):
-                repo.add_genre(genre)
-
-        # Add any new actors to repo
-        for actor in list_of_actors:
-            if not repo.check_actor_existence_in_repo(actor):
-                repo.add_actor(actor)
-
-        # Add any new directors to repo
-        if not repo.check_director_existence_in_repo(director):
-            repo.add_director(director)
-
         # Create Movie object
         movie = Movie(
             title=title,
@@ -237,6 +230,28 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
         # Add movie to repo
         repo.add_movie(movie)
 
+        # Add any new genres to repo
+        # for genre in list_of_genres:
+        #     if not repo.check_genre_existence(genre):
+        #         repo.add_genre(genre)
+        for genre in list_of_genres:
+            if genre not in genres.keys():
+                genres[genre] = list()
+            genres[genre].append(movie_index)
+
+
+
+
+        # Add any new actors to repo
+        for actor in list_of_actors:
+            if not repo.check_actor_existence_in_repo(actor):
+                repo.add_actor(actor)
+
+        # Add any new directors to repo
+        if not repo.check_director_existence_in_repo(director):
+            repo.add_director(director)
+
+
         # Connect the current movie with its attributes
         add_movie_attributes(movie=movie,
                              list_of_genres=list_of_genres,
@@ -244,6 +259,15 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
                              list_of_actors=list_of_actors,
                              director=director,
                              runtime=runtime)
+
+    # Associate Genres with Movies and add them to the repository
+    for genre in genres.keys():
+        for current_movie_index in genres[genre]:
+            movie = repo.get_movie_by_index(current_movie_index)
+            movie.add_genre(genre)
+            genre.add_Movie(movie)
+        repo.add_genre(genre)
+
 
 
 def load_users(datapath: str, repo: MemoryRepository):
@@ -260,13 +284,17 @@ def load_users(datapath: str, repo: MemoryRepository):
 
 def load_reviews(data_path:str, repo:MemoryRepository, users):
     for data_row in read_csv_file(os.path.join(data_path, 'reviews.csv')):
+        movie = repo.get_movie_by_index(int(data_row[2]))
+        user = users[int(data_row[1])]
         review = Review(
-            user=users[int(data_row[1])],
-            movie=repo.get_movie_by_index(int(data_row[2])),
+            user=user,
+            movie=movie,
             review_text=data_row[3],
             rating=int(data_row[4]),
             timestamp=datetime.fromisoformat(data_row[5])
         )
+        user.add_review(review)
+        movie.add_review(review)
         repo.add_review(review)
 
 

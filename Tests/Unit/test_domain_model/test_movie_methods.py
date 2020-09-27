@@ -7,7 +7,7 @@ class TestMovieMethods:
 
     def test_director(self):
         movie1 = Movie("Moana", 2016, 1)
-        movie1.set_director = Director("Ron Clements")
+        movie1.set_director(Director("Ron Clements"))
         assert repr(movie1.director) == "<Director Ron Clements>"
 
     def test_add_actors(self):
@@ -19,15 +19,14 @@ class TestMovieMethods:
             movie1.add_actor(actor)
             next(i) == actor
 
-
     def test_movie_runtime_minutes(self):
         movie1 = Movie("Moana", 2016, 1)
-        movie1.set_runtime_minutes = 107
+        movie1.set_runtime_minutes(107)
         assert movie1.runtime_minutes == 107
 
         with pytest.raises(ValueError):
             movie1 = Movie("Kong", 2016, 3)
-            movie1.set_runtime_minutes = -6
+            movie1.set_runtime_minutes(-6)
             assert movie1.runtime_minutes == ValueError
 
     def test_remove_actor(self):
@@ -49,6 +48,7 @@ class TestMovieMethods:
         assert movie1.__lt__(movie2) == False
         assert movie2.__lt__(movie1) == True
         assert movie2.__lt__(movie3) == True
+
     def test_release_year(self):
         movie1 = Movie("Moana", 2016, 1)
         movie2 = Movie("Apple", "abc", 3)

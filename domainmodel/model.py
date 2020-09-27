@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+
 class Actor:
     def __init__(self, actor_full_name: str):
         if actor_full_name == "" or type(actor_full_name) is not str:
@@ -100,7 +101,9 @@ class Genre:
         return movie in self.__classified_movies
 
     def add_Movie(self, movie):
-        self.__classified_movies.append(movie)
+        if isinstance(movie, Movie):
+            if movie not in self.__classified_movies:
+                self.__classified_movies.append(movie)
 
     def __repr__(self):
         return "<Genre {}>".format(self.__genre_name)
@@ -120,14 +123,14 @@ class Genre:
 
 
 class Movie:
-    def __init__(self, title: str, release_year: int, id:int):
+    def __init__(self, title: str, release_year: int, id: int):
         self.__id = id
         self.__description = ""
         self.__director = None
         self.__actors = list()
         self.__genres = list()
         self.__reviews = list()
-        self.__runtime_minutes = None
+        self.__runtime_minutes = 0
 
         if len(title) > 0 and type(title) is str and type(release_year) is int and release_year >= 1900:
             self.__title = title
@@ -190,21 +193,18 @@ class Movie:
     def number_of_genres(self):
         return len(self.__genres)
 
-    @description.setter
     def set_description(self, new_description: str) -> bool:
         if type(new_description) is str:
             self.__description = new_description
             return True
         return False
 
-    @director.setter
-    def set_director(self, new_director) -> bool:
+    def set_director(self, new_director: Director) -> bool:
         if isinstance(new_director, Director):
             self.__director = new_director
             return True
         return False
 
-    @runtime_minutes.setter
     def set_runtime_minutes(self, new_runtime_minutes) -> bool:
         if type(new_runtime_minutes) is int:
             if new_runtime_minutes > 0:
@@ -226,8 +226,9 @@ class Movie:
 
     def add_genre(self, genre: Genre) -> bool:
         if isinstance(genre, Genre):
-            self.__genres.append(genre)
-            return True
+            if genre not in self.__genres:
+                self.__genres.append(genre)
+                return True
         return False
 
     def remove_genre(self, genre: Genre):
@@ -239,6 +240,9 @@ class Movie:
             self.__reviews.append(review)
             return True
         return False
+
+    def is_classified_as(self, genre:Genre):
+        return genre in self.__genres
 
     def __repr__(self):
         return "<Movie {}, {}>".format(self.title, self.release_year)
@@ -321,7 +325,7 @@ class User:
 
 
 class Review:
-    def __init__(self, user: User, movie: Movie, review_text: str, rating: int, timestamp:datetime):
+    def __init__(self, user: User, movie: Movie, review_text: str, rating: int, timestamp: datetime):
         self.__author = user
         self.__movie = movie
         self.__review_text = review_text
@@ -434,13 +438,12 @@ class ModelException(Exception):
 
 
 def add_movie_attributes(movie: Movie, list_of_genres: List[Genre],
-                         description:str, list_of_actors : List[Actor],
-                         director:Director, runtime:int):
-
+                         description: str, list_of_actors: List[Actor],
+                         director: Director, runtime: int):
     # Build connection between genres and movie
-    for genre in list_of_genres:
-        movie.add_genre(genre)
-        genre.add_Movie(movie)
+    # for genre in list_of_genres:
+    #     movie.add_genre(genre)
+    #     genre.add_Movie(movie)
 
     # Add actors to movie and construct actor colleagues
     for actor in list_of_actors:
@@ -457,7 +460,3 @@ def add_movie_attributes(movie: Movie, list_of_genres: List[Genre],
 
     # Set movie runtime
     movie.set_runtime_minutes(runtime)
-
-
-
-

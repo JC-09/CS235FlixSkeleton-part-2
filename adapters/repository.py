@@ -7,6 +7,7 @@ repo_instance = None
 
 
 class RepositoryException(Exception):
+
     def __init__(self, message=None):
         pass
 
@@ -78,7 +79,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_number_of_actors(self) -> int:
+    def get_total_number_of_actors(self) -> int:
         """ Returns the number of Actors in the repository """
         raise NotImplementedError
 
@@ -99,7 +100,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_number_of_directors(self) -> int:
+    def get_total_number_of_directors(self) -> int:
         """ Returns the total number directors in the repository """
         raise NotImplementedError
 
@@ -113,6 +114,11 @@ class AbstractRepository(abc.ABC):
         """ Returns a genre with the given genre_name
             If no genre in the repository has the given genre_name, this method returns None
         """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_total_number_of_genres_in_repo(self):
+        """ Returns the total number of (unique) genres in repo """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -133,6 +139,10 @@ class AbstractRepository(abc.ABC):
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def get_total_number_of_movies_in_repo(self):
+        """ Returns the total number of movies in the repository """
+        raise NotImplementedError
 
     @abc.abstractmethod
     def get_movie_by_index(self, index:int):
