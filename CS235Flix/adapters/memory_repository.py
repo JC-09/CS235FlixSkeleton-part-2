@@ -4,9 +4,10 @@ from datetime import datetime
 from typing import List
 
 from werkzeug.security import generate_password_hash
-
+from bisect import bisect_left, insort_left
 from CS235Flix.adapters.repository import AbstractRepository
-from CS235Flix.domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList, add_movie_attributes
+from CS235Flix.domainmodel.model import User, Actor, Director, Genre, Movie, Review, WatchList, add_movie_attributes, \
+    make_review
 
 
 class MemoryRepository(AbstractRepository):
@@ -26,7 +27,7 @@ class MemoryRepository(AbstractRepository):
             self._users.append(user)
 
     def get_user(self, username) -> User:
-        return next((user for user in self._users if user.user_name == username.lower()), None)
+        return next((user for user in self._users if user.username == username.lower()), None)
 
     def get_user_watched_movies(self, user: User) -> List[Movie]:
         if user in self._users:
@@ -99,15 +100,65 @@ class MemoryRepository(AbstractRepository):
 
     def add_movie(self, movie: Movie):
         if isinstance(movie, Movie):
-            self._movies.append(movie)
+            # self._movies.append(movie)
+            insort_left(self._movies, movie)
             self._movie_index[movie.id] = movie
 
     def get_movie(self, title: str, release_year: int):
         return next((movie for movie in self._movies if (movie.title == title and movie.release_year == release_year)),
                     None)
 
+    def get_movies_by_release_year(self, target_year:int):
+        matching_movies = list()
+        for movie in self._movies:
+            if movie.release_year == target_year:
+                matching_movies.append(movie)
+        return matching_movies
+
     def get_total_number_of_movies_in_repo(self):
         return len(self._movies)
+
+    def get_latest_movie(self):
+        movie = None
+
+        if len(self._movies) > 0:
+            movie = self._movies[-1]
+        return movie
+
+    def get_oldest_movie(self):
+        movie = None
+        if len(self._movies) > 0:
+            movie = self._movies[0]
+        return movie
+
+    def get_release_year_of_previous_movie(self, movie:Movie):
+        previous_year = None
+
+        try:
+            index = self.movie_index(movie)
+            for stored_movie in reversed(self._movies[0:index]):
+                if stored_movie.release_year < movie.release_year:
+                    previous_year = stored_movie.release_year
+                    break
+        except ValueError:
+            pass
+
+        return previous_year
+
+
+    def get_release_year_of_next_movie(self, movie: Movie):
+        next_year = None
+
+        try:
+            index = self.movie_index(movie)
+            for stored_movie in self._movies[index + 1:len(self._movies)]:
+                if stored_movie.release_year > movie.release_year:
+                    next_year = stored_movie.release_year
+                    break
+        except ValueError:
+            pass
+
+        return next_year
 
     def get_movie_by_index(self, index: int):
         movie = None
@@ -118,7 +169,7 @@ class MemoryRepository(AbstractRepository):
             pass
         return movie
 
-    def get_movie_index_for_genre(self, genre_name: str):
+    def get_movie_indexes_for_genre(self, genre_name: str):
         genre = next((genre for genre in self._genres if genre.genre_name == genre_name), None)
         if genre is not None:
             movie_indexes = [movie.id for movie in genre.classified_movies]
@@ -185,6 +236,13 @@ class MemoryRepository(AbstractRepository):
     def get_watchlist(self) -> List[WatchList]:
         return self._watchlists
 
+    # Helper method to return movie index
+    def movie_index(self, movie: Movie):
+        index = bisect_left(self._movies, movie)
+        if index != len(self._movies) and self._movies[index].release_year == movie.release_year:
+            return index
+        raise ValueError
+
 
 def read_csv_file(filename: str):
     with open(filename, encoding='utf-8-sig') as infile:
@@ -202,7 +260,7 @@ def read_csv_file(filename: str):
 
 def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryRepository):
     genres = dict()
-    for data_row in read_csv_file(os.path.join(data_path, "Data1000Movies.csv")):
+    for data_row in read_csv_file(os.path.join(data_path, "movies.csv")):
         movie_index = int(data_row[0])
         title = data_row[1]
 
@@ -237,9 +295,6 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
                 genres[genre] = list()
             genres[genre].append(movie_index)
 
-
-
-
         # Add any new actors to repo
         for actor in list_of_actors:
             if not repo.check_actor_existence_in_repo(actor):
@@ -248,7 +303,6 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
         # Add any new directors to repo
         if not repo.check_director_existence_in_repo(director):
             repo.add_director(director)
-
 
         # Connect the current movie with its attributes
         add_movie_attributes(movie=movie,
@@ -267,7 +321,6 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
         repo.add_genre(genre)
 
 
-
 def load_users(datapath: str, repo: MemoryRepository):
     users = dict()
     for data_row in read_csv_file(os.path.join(datapath, 'users.csv')):
@@ -280,24 +333,16 @@ def load_users(datapath: str, repo: MemoryRepository):
     return users
 
 
-def load_reviews(data_path:str, repo:MemoryRepository, users):
+def load_reviews(data_path: str, repo: MemoryRepository, users):
     for data_row in read_csv_file(os.path.join(data_path, 'reviews.csv')):
         movie = repo.get_movie_by_index(int(data_row[2]))
         user = users[int(data_row[1])]
-        review = Review(
-            user=user,
-            movie=movie,
-            review_text=data_row[3],
-            rating=int(data_row[4]),
-            timestamp=datetime.fromisoformat(data_row[5])
-        )
-        user.add_review(review)
-        movie.add_review(review)
+        review = make_review(review_text=data_row[3], user=user, movie=movie, rating=int(data_row[4]), timestamp=datetime.fromisoformat(data_row[5]))
         repo.add_review(review)
 
 
-def populate(data_path:str, repo:MemoryRepository):
-    # Load movies from Data1000Movies.csv
+def populate(data_path: str, repo: MemoryRepository):
+    # Load movies from movies.csv
     load_movies_actors_directors_genre_description(data_path, repo)
 
     # Load users into the repository

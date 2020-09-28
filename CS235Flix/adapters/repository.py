@@ -139,6 +139,47 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def get_movies_by_release_year(self, target_year: int) -> List[Movie]:
+        """ Return a list of Movies tha were released in the target_year
+
+            If there are no Movies on the given year, this method returns an empty list.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_latest_movie(self):
+        """ Return the latest Movie, ordered by release year, from the repository.
+            Returns None if the repository is empty
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_oldest_movie(self):
+        """Return the oldest Movie, ordered by release year, from the repository
+            Returns None if the repository is empty
+        """
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
+    def get_release_year_of_previous_movie(self, movie: Movie):
+        """ Returns the release year of a Movie that immediately precedes movie.
+            If movie is the first Movie in the repository, this method returns none because there are no Movies
+            in the previous year.
+        """
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
+    def get_release_year_of_next_movie(self, movie: Movie):
+        """ Returns the release year of a Movie that immediately after movie.
+            If movie is the first Movie in the repository, this method returns none because there are no Movies
+            in the previous year.
+        """
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
     def get_total_number_of_movies_in_repo(self):
         """ Returns the total number of movies in the repository """
         raise NotImplementedError
@@ -151,7 +192,7 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_movie_index_for_genre(self, genre_name:str):
+    def get_movie_indexes_for_genre(self, genre_name:str):
         """ Returns a list of movie indexes representing Movies that are classified by the given genre_name
             If there are no movie are classified by the given genre name then the method returns an empty list
         """

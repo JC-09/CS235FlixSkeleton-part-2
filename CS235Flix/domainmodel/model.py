@@ -123,7 +123,7 @@ class Genre:
 
 
 class Movie:
-    def __init__(self, title: str, release_year: int, id: int):
+    def __init__(self, title: str, release_year: int, id: int = None):
         self.__id = id
         self.__description = ""
         self.__director = None
@@ -132,7 +132,7 @@ class Movie:
         self.__reviews = list()
         self.__runtime_minutes = 0
 
-        if len(title) > 0 and type(title) is str and type(release_year) is int and release_year >= 1900:
+        if title != "" and type(title) is str and type(release_year) is int and release_year >= 1900:
             self.__title = title
             self.__release_year = release_year
         elif (title == "" or type(title) is not str) and (type(release_year) is int and release_year >= 1900):
@@ -241,7 +241,7 @@ class Movie:
             return True
         return False
 
-    def is_classified_as(self, genre:Genre):
+    def is_classified_as(self, genre: Genre):
         return genre in self.__genres
 
     def __repr__(self):
@@ -253,10 +253,10 @@ class Movie:
         return self.title == other.title and self.release_year == other.release_year
 
     def __lt__(self, other):
-        if self.title == other.title:
-            return self.release_year < other.release_year
-        else:
+        if self.release_year == other.release_year:
             return self.title < other.title
+        else:
+            return self.release_year < other.release_year
 
     def __hash__(self):
         return hash((self.__title, self.__release_year))
@@ -277,7 +277,7 @@ class User:
         self.__time_spent_watching_movies_minutes = 0
 
     @property
-    def user_name(self):
+    def username(self):
         return self.__user_name
 
     @property
@@ -297,17 +297,17 @@ class User:
         return self.__time_spent_watching_movies_minutes
 
     def __repr__(self):
-        return "<User {}>".format(self.user_name)
+        return "<User {}>".format(self.username)
 
     def __eq__(self, other):
         if not isinstance(other, User):
             return False
-        if self.user_name is None and other.user_name is None:
+        if self.username is None and other.username is None:
             return False
-        return self.user_name == other.user_name
+        return self.username == other.username
 
     def __lt__(self, other):
-        return self.user_name < other.user_name
+        return self.username < other.username
 
     def __hash__(self):
         return hash((self.__user_name, self.__password))
@@ -460,3 +460,11 @@ def add_movie_attributes(movie: Movie, list_of_genres: List[Genre],
 
     # Set movie runtime
     movie.set_runtime_minutes(runtime)
+
+
+def make_review(review_text: str, user: User, movie: Movie, rating: int, timestamp: datetime = datetime.today()):
+    review = Review(user=user, movie=movie, review_text=review_text, rating=rating, timestamp=timestamp)
+    user.add_review(review)
+    movie.add_review(review)
+
+    return review

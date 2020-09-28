@@ -45,9 +45,11 @@ class TestMovieMethods:
         movie1 = Movie("Moana", 2016, 1)
         movie2 = Movie("Apple", 2019, 2)
         movie3 = Movie("Apple", 2020, 3)
-        assert movie1.__lt__(movie2) == False
-        assert movie2.__lt__(movie1) == True
+        movie4 = Movie("Apple", 2016, 4)
+        assert movie1.__lt__(movie2) == True
+        assert movie2.__lt__(movie1) == False
         assert movie2.__lt__(movie3) == True
+        assert movie4.__lt__(movie1) == True
 
     def test_release_year(self):
         movie1 = Movie("Moana", 2016, 1)

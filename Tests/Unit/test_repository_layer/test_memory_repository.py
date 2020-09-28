@@ -25,27 +25,53 @@ def test_repository_does_not_retrieve_a_non_existent_user(in_memory_repo):
 
 def test_repository_can_retrieve_correct_movie_count(in_memory_repo):
     number_of_movies = in_memory_repo.get_total_number_of_movies_in_repo()
-    assert number_of_movies == 1000
+    assert number_of_movies == 10
 
 
 def test_repository_can_retrieve_correct_director_count(in_memory_repo):
     number_of_directors = in_memory_repo.get_total_number_of_directors()
-    assert number_of_directors == 644
+    assert number_of_directors == 10
 
 
 def test_repository_can_retrieve_correct_actor_count(in_memory_repo):
     number_of_actors = in_memory_repo.get_total_number_of_actors()
-    assert number_of_actors == 1985
+    assert number_of_actors == 39
 
 
 def test_repository_can_retrieve_correct_genre_count(in_memory_repo):
     number_of_genres = in_memory_repo.get_total_number_of_genres_in_repo()
-    assert number_of_genres == 20
+    assert number_of_genres == 14
 
 
 def test_repository_can_retrieve_correct_review_count(in_memory_repo):
     number_of_reviews = in_memory_repo.get_total_number_of_reviews()
     assert number_of_reviews == 3
+
+
+def test_repository_can_retrieve_movies_by_year(in_memory_repo):
+    movies_2014 = in_memory_repo.get_movies_by_release_year(2014)
+
+    movies_2016 = in_memory_repo.get_movies_by_release_year(2016)
+    assert len(movies_2014) == 1
+    assert len(movies_2016) == 8
+
+
+def test_repository_does_not_retrieve_any_movie_when_there_are_no_movies_for_a_given_year(in_memory_repo):
+    movies_1800 = in_memory_repo.get_movies_by_release_year(1800)
+    movies_2030 = in_memory_repo.get_movies_by_release_year(2030)
+    assert len(movies_1800) == 0
+    assert len(movies_2030) == 0
+
+
+def test_repository_can_get_the_latest_movie(in_memory_repo):
+    movie = in_memory_repo.get_latest_movie()
+    assert movie.title == "The Lost City of Z"
+    assert movie.release_year == 2016
+
+def test_repository_can_get_the_oldest_movie(in_memory_repo):
+    movie = in_memory_repo.get_oldest_movie()
+    assert movie.title == "Prometheus"
+    assert movie.release_year == 2012
 
 
 def test_repository_can_add_movie(in_memory_repo):
@@ -84,8 +110,8 @@ def test_repository_can_retrieve_movie_by_index(in_memory_repo):
 
     review_1 = [review for review in movie.reviews if review.review_text == "This movie is great!"][0]
     review_2 = [review for review in movie.reviews if review.review_text == "This movie is awesome"][0]
-    assert review_1.review_author.user_name == "fmercury"
-    assert review_2.review_author.user_name == "thorke"
+    assert review_1.review_author.username == "fmercury"
+    assert review_2.review_author.username == "thorke"
 
 
 def test_repository_can_retrieve_movie_by_title_and_release_year(in_memory_repo):
@@ -111,8 +137,8 @@ def test_repository_can_retrieve_movie_by_title_and_release_year(in_memory_repo)
 
     review_1 = [review for review in movie.reviews if review.review_text == "This movie is great!"][0]
     review_2 = [review for review in movie.reviews if review.review_text == "This movie is awesome"][0]
-    assert review_1.review_author.user_name == "fmercury"
-    assert review_2.review_author.user_name == "thorke"
+    assert review_1.review_author.username == "fmercury"
+    assert review_2.review_author.username == "thorke"
 
 
 def test_repository_does_not_retrieve_a_non_existent_movie(in_memory_repo):
@@ -121,17 +147,26 @@ def test_repository_does_not_retrieve_a_non_existent_movie(in_memory_repo):
 
 
 def test_repository_can_retrieve_a_list_of_movie_indexes_by_a_genre_name(in_memory_repo):
-    list_of_movie_indexes_for_Sci_Fi = in_memory_repo.get_movie_index_for_genre("Sci-Fi")
-    list_of_movie_indexes_for_Horror = in_memory_repo.get_movie_index_for_genre("Horror")
+    list_of_movie_indexes_for_Sci_Fi = in_memory_repo.get_movie_indexes_for_genre("Sci-Fi")
+    list_of_movie_indexes_for_Horror = in_memory_repo.get_movie_indexes_for_genre("Horror")
 
-    assert len(list_of_movie_indexes_for_Sci_Fi) == 120
-    assert len(list_of_movie_indexes_for_Horror) == 119
+    assert len(list_of_movie_indexes_for_Sci_Fi) == 2
+    assert len(list_of_movie_indexes_for_Horror) == 1
 
 
 def test_repository_returns_an_empty_list_of_movie_indexes_for_non_existent_genre_name(in_memory_repo):
-    list_of_movie_indexes_for_Fake_Genre = in_memory_repo.get_movie_index_for_genre("Fake Genre")
+    list_of_movie_indexes_for_Fake_Genre = in_memory_repo.get_movie_indexes_for_genre("Fake Genre")
 
     assert len(list_of_movie_indexes_for_Fake_Genre) == 0
+
+
+def test_repository_can_retrieve_movies_for_a_indexes_list(in_memory_repo):
+    movies = in_memory_repo.get_movies_by_index([1, 3, 7, 10])
+
+    assert movies[0].title == 'Guardians of the Galaxy'
+    assert movies[1].title == 'Split'
+    assert movies[2].title == 'La La Land'
+    assert movies[3].title == 'Passengers'
 
 
 def test_repository_does_not_retrieve_movies_for_non_existent_indexes(in_memory_repo):
@@ -139,6 +174,32 @@ def test_repository_does_not_retrieve_movies_for_non_existent_indexes(in_memory_
 
     assert len(movies) == 1
     assert movies[0].title == "Prometheus"
+
+
+def test_repository_returns_release_year_of_previous_movie(in_memory_repo):
+    movie = in_memory_repo.get_movie_by_index(1)
+    previous_year = in_memory_repo.get_release_year_of_previous_movie(movie)
+
+    assert previous_year == 2012  # 2013 for 1000 movies
+
+
+def test_repository_returns_none_when_there_are_no_previous_movies(in_memory_repo):
+    movie = in_memory_repo.get_movie_by_index(2)
+    previous_year = in_memory_repo.get_release_year_of_previous_movie(movie)
+
+    assert previous_year is None
+
+
+def test_repository_returns_release_year_of_next_movie(in_memory_repo):
+    movie = in_memory_repo.get_movie_by_index(1)
+    next_year = in_memory_repo.get_release_year_of_next_movie(movie)
+    assert next_year == 2016 # 2015 if using the full 1000 movies
+
+
+def test_repository_returns_none_when_there_are_no_next_movies(in_memory_repo):
+    movie = in_memory_repo.get_movie_by_index(3)
+    next_year = in_memory_repo.get_release_year_of_next_movie(movie)
+    assert next_year is None
 
 
 def test_repository_returns_an_empty_list_for_non_existent_indexes(in_memory_repo):
@@ -168,12 +229,12 @@ def test_repository_returns_none_for_non_existent_director(in_memory_repo):
 
 def test_repository_can_check_existence_of_director(in_memory_repo):
     assert in_memory_repo.check_director_existence_in_repo(Director("Fake Director")) is False
-    assert in_memory_repo.check_director_existence_in_repo(Director("Garth Davis")) is True
+    assert in_memory_repo.check_director_existence_in_repo(Director("Sean Foley")) is True
 
 
 def test_repository_can_check_existence_of_actor(in_memory_repo):
     assert in_memory_repo.check_actor_existence_in_repo(Actor("Fake Actor")) is False
-    assert in_memory_repo.check_actor_existence_in_repo(Actor("Lake Bell")) is True
+    assert in_memory_repo.check_actor_existence_in_repo(Actor("Matt Damon")) is True
 
 
 def test_repository_can_check_existence_of_genre(in_memory_repo):
