@@ -81,7 +81,7 @@ def get_movies_by_id(id_list, repo: AbstractRepository):
     return movies_as_dict
 
 
-def get_reviews_for_article(movie_id, repo: AbstractRepository):
+def get_reviews_for_movie(movie_id, repo: AbstractRepository):
     movie = repo.get_movie_by_index(movie_id)
 
     if movie is None:
@@ -101,7 +101,7 @@ def movie_to_dict(movie: Movie):
         'title': movie.title,
         'release_year': movie.release_year,
         'description': movie.description,
-        'director': movie.director,
+        'director': movie.director.director_full_name,
         'actors': actors_to_dict(movie.actors),
         'genres': genres_to_dict(movie.genres),
         'runtime_minutes': movie.runtime_minutes
