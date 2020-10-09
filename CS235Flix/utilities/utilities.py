@@ -23,3 +23,5 @@ def get_selected_movies(quantity=10):
     for movie in movies:
         movie['id'] = url_for('movies_bp.movies_by_release_year', year=int(movie['release_year'])) # movie['hyperlink']
     return movies
+
+

@@ -8,7 +8,7 @@ from CS235Flix.domainmodel.model import Movie
 
 
 def get_genre_names(repo:AbstractRepository) -> List[str]:
-    genres = repo.get_genre()
+    genres = repo.get_genres()
     genre_names = [genre.genre_name for genre in genres]
 
     return genre_names

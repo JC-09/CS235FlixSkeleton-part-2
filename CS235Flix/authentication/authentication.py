@@ -11,6 +11,11 @@ from functools import wraps
 import CS235Flix.utilities.utilities as utilities
 import CS235Flix.authentication.services as services
 import CS235Flix.adapters.repository as repo
+from flask_wtf import FlaskForm
+from wtforms import TextAreaField, HiddenField, SubmitField, DecimalField
+from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
+
+
 
 # Configure Blueprint
 authentication_blueprint = Blueprint(
@@ -31,15 +36,19 @@ def register():
             # All is well, redirect the user to the login page.
             return redirect(url_for('authentication_bp.login'))
         except services.NameNotUniqueException:
-            username_not_unique = 'Your username is already taken - please supply another'
+            username_not_unique = 'Your username is already taken - please try another'
 
     # For a GET or a failed POST request, return the Registration Web page.
     return render_template(
         'authentication/credentials.html',
         title='Register',
-        form=form,
+        form_login=form,
+        form=SearchForm(),
+        handler_url=url_for('movies_bp.search'),
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title'),
         username_error_message=username_not_unique,
-        handler_url=url_for('authentication_bp.register'),
+        handler_url_login=url_for('authentication_bp.register'),
         selected_movies=utilities.get_selected_movies(),
         genre_urls=utilities.get_genres_and_urls()
     )
@@ -73,11 +82,15 @@ def login():
             password_does_not_match_username = 'Password does not match supplied username - please check and try again'
 
     return render_template(
-        'authentication/credential.html',
+        'authentication/credentials.html',
         title='Login',
         username_error_message=username_not_recognised,
         password_error_message=password_does_not_match_username,
-        form=form,
+        form_login=form,
+        title_form=SearchByTitleForm(),
+        form=SearchForm(),
+        handler_url=url_for('movies_bp.search'),
+        handler_url_title=url_for('movies_bp.search_by_title'),
         selected_movies=utilities.get_selected_movies(),
         genre_urls=utilities.get_genres_and_urls()
     )
@@ -101,7 +114,7 @@ def login_required(view):
 class PasswordValid:
     def __init__(self, message=None):
         if not message:
-            message = u'Your password must at least 8 characters, and contain an upper case letter, a lower case letter and a digit'
+            message = b'Your password must be at least 8 characters, and contains an upper case letter, a lower case letter, and a digit'
         self.message = message
 
     def __call__(self, form, field):
@@ -131,3 +144,14 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', [
         DataRequired()])
     submit = SubmitField('Login')
+
+
+class SearchForm(FlaskForm):
+    actor = TextAreaField('Please enter actor fullname')
+    director = TextAreaField('Please enter director fullname')
+    search = SubmitField('Search')
+
+
+class SearchByTitleForm(FlaskForm):
+    title = TextAreaField('Please enter movie title')
+    search = SubmitField('Search')

@@ -7,9 +7,11 @@ class Actor:
         if actor_full_name == "" or type(actor_full_name) is not str:
             self.__actor_full_name = None
             self.__actor_colleague = list()
+            self.__played_movies = list()
         else:
             self.__actor_full_name = actor_full_name.strip()
             self.__actor_colleague = list()
+            self.__played_movies = list()
 
     @property
     def actor_full_name(self) -> str:
@@ -19,10 +21,17 @@ class Actor:
     def actor_colleague(self):
         return iter(self.__actor_colleague)
 
+    @property
+    def played_movies(self):
+        return iter(self.__played_movies)
+
     def add_actor_colleague(self, colleague):
         if isinstance(colleague, Actor):
             self.__actor_colleague.append(colleague)
             colleague.__actor_colleague.append(self)
+
+    def add_played_movies(self, movie):
+        self.__played_movies.append(movie)
 
     def check_if_this_actor_worked_with(self, colleague):
         return colleague in self.actor_colleague
@@ -50,6 +59,7 @@ class Actor:
 class Director:
 
     def __init__(self, director_full_name: str):
+        self.__directed_movies = list()
         if director_full_name == "" or type(director_full_name) is not str:
             self.__director_full_name = None
         else:
@@ -58,6 +68,13 @@ class Director:
     @property
     def director_full_name(self) -> str:
         return self.__director_full_name
+
+    @property
+    def directed_movies(self):
+        return iter(self.__directed_movies)
+
+    def add_directed_movies(self, movie):
+        self.__directed_movies.append(movie)
 
     def __repr__(self):
         return f"<Director {self.__director_full_name}>"
@@ -440,20 +457,15 @@ class ModelException(Exception):
 def add_movie_attributes(movie: Movie, list_of_genres: List[Genre],
                          description: str, list_of_actors: List[Actor],
                          director: Director, runtime: int):
-    # Build connection between genres and movie
-    # for genre in list_of_genres:
-    #     movie.add_genre(genre)
-    #     genre.add_Movie(movie)
 
     # Add actors to movie and construct actor colleagues
     for actor in list_of_actors:
-        movie.add_actor(actor)
         for colleague in list_of_actors:
             if colleague is not actor:
                 actor.add_actor_colleague(colleague)
 
     # Add director to movie
-    movie.set_director(director)
+    # movie.set_director(director)
 
     # Set movie description
     movie.set_description(description)

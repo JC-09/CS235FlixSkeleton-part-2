@@ -1,4 +1,5 @@
 from datetime import date
+from typing import List
 
 import pytest
 
@@ -114,6 +115,18 @@ def test_repository_can_retrieve_movie_by_index(in_memory_repo):
     assert review_2.review_author.username == "thorke"
 
 
+def test_repository_can_retrieve_genres(in_memory_repo):
+    genres: List[Genre] = in_memory_repo.get_genres()
+
+    assert len(genres) == 14
+
+    genre_one = [genre for genre in genres if genre.genre_name == 'Sci-Fi'][0]  # Should have 2 matches
+    genre_two = [genre for genre in genres if genre.genre_name == 'Comedy'][0]  # Should have 3 matches
+
+    assert genre_one.number_of_classified_movies == 2
+    assert genre_two.number_of_classified_movies == 3
+
+
 def test_repository_can_retrieve_movie_by_title_and_release_year(in_memory_repo):
     movie = in_memory_repo.get_movie("Guardians of the Galaxy", 2014)
 
@@ -154,10 +167,71 @@ def test_repository_can_retrieve_a_list_of_movie_indexes_by_a_genre_name(in_memo
     assert len(list_of_movie_indexes_for_Horror) == 1
 
 
+def test_repository_can_retrieve_a_list_of_movies_by_an_actor_fullname(in_memory_repo):
+    list_of_movies_played_by_Bradley_Cooper = in_memory_repo.get_movies_played_by_an_actor("Bradley Cooper")
+    assert len(list_of_movies_played_by_Bradley_Cooper) == 1
+    assert list_of_movies_played_by_Bradley_Cooper[0].title == "Guardians of the Galaxy"
+
+    list_of_movies_played_by_Chris_Pratt = in_memory_repo.get_movies_played_by_an_actor("Chris Pratt")
+    assert len(list_of_movies_played_by_Chris_Pratt) == 2
+    assert list_of_movies_played_by_Chris_Pratt[0].title == "Guardians of the Galaxy"
+    assert list_of_movies_played_by_Chris_Pratt[1].title == "Passengers"
+
+
+def test_repository_returns_an_empty_list_of_movie_for_non_existent_actor(in_memory_repo):
+    list_of_movies_played_by_fake_actor = in_memory_repo.get_movies_played_by_an_actor('Fack Actor')
+
+    assert len(list_of_movies_played_by_fake_actor) == 0
+
+
+def test_repository_returns_a_list_of_movies_directed_by_a_valid_director(in_memory_repo):
+    list_of_movies_directed_by_James_Gunn = in_memory_repo.get_movies_directed_by_a_director("James Gunn")
+    assert len(list_of_movies_directed_by_James_Gunn) == 1
+    assert list_of_movies_directed_by_James_Gunn[0].title == "Guardians of the Galaxy"
+
+
+def test_repository_returns_empty_list_of_movie_for_non_existent_director(in_memory_repo):
+    list_of_movies = in_memory_repo.get_movies_directed_by_a_director('Fake Director')
+    assert len(list_of_movies) == 0
+
+
 def test_repository_returns_an_empty_list_of_movie_indexes_for_non_existent_genre_name(in_memory_repo):
     list_of_movie_indexes_for_Fake_Genre = in_memory_repo.get_movie_indexes_for_genre("Fake Genre")
-
     assert len(list_of_movie_indexes_for_Fake_Genre) == 0
+
+
+def test_repository_returns_a_list_of_movies_based_on_actor_and_director(in_memory_repo):
+    list_of_movies = in_memory_repo.search_movies_by_actor_and_director('Ryan Gosling', 'Damien Chazelle')
+    assert len(list_of_movies) == 1
+    assert list_of_movies[0].title == 'La La Land'
+
+
+def test_repository_returns_an_empty_list_for_invalid_actor_name_or_director_name(in_memory_repo):
+    invalid_actor = in_memory_repo.search_movies_by_actor_and_director('Fake Actor', 'Damien Chazelle')
+    assert len(invalid_actor) == 0
+
+    invalid_director = in_memory_repo.search_movies_by_actor_and_director('Ryan Gosling', 'Fake Director')
+    assert len(invalid_director) == 0
+
+    both_invalid = in_memory_repo.search_movies_by_actor_and_director('Fake Actor', 'Fake Director')
+    assert len(both_invalid) == 0
+
+
+def test_repository_returns_a_list_of_movies_by_title(in_memory_repo):
+    # test search by exact title
+    list_of_movies = in_memory_repo.search_movie_by_title('Suicide Squad')
+    assert len(list_of_movies) == 1
+    assert list_of_movies[0].id == 5
+
+    # test search by fuzzy title
+    list_of_movies = in_memory_repo.search_movie_by_title("the")
+    assert len(list_of_movies) == 4
+
+    list_of_movies_titles = [movie.title for movie in list_of_movies]
+    assert "Prometheus" in list_of_movies_titles
+    assert "Guardians of the Galaxy" in list_of_movies_titles
+    assert "The Great Wall" in list_of_movies_titles
+    assert "The Lost City of Z" in list_of_movies_titles
 
 
 def test_repository_can_retrieve_movies_for_a_indexes_list(in_memory_repo):

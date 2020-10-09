@@ -13,6 +13,18 @@ class UnknownUserException(Exception):
     pass
 
 
+class NonExistentActorException(Exception):
+    pass
+
+
+class NonExistentDirectorException(Exception):
+    pass
+
+
+class NoSearchResultsException(Exception):
+    pass
+
+
 def add_review(review_text: str, username: str, movie_id: int, rating: int, repo: AbstractRepository):
     # Check that the movie exists.
     movie = repo.get_movie_by_index(movie_id)
@@ -90,6 +102,42 @@ def get_reviews_for_movie(movie_id, repo: AbstractRepository):
     return reviews_to_dict(movie.reviews)
 
 
+def search_movie_by_actor_fullname(actor_fullname: str, repo: AbstractRepository):
+
+    movies = repo.get_movies_played_by_an_actor(actor_fullname=actor_fullname)
+    if len(movies) == 0:
+        raise NonExistentActorException
+
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
+
+def search_movie_directed_by_director_fullname(director_fullname: str, repo: AbstractRepository):
+    movies = repo.get_movies_directed_by_a_director(director_fullname=director_fullname)
+    if len(movies) == 0:
+        raise NonExistentDirectorException
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
+
+def search_movie_by_actor_and_director(actor_fullname: str, director_fullname: str, repo: AbstractRepository):
+    movies = repo.search_movies_by_actor_and_director(actor_fullname=actor_fullname,
+                                                      director_fullname=director_fullname)
+    if len(movies) == 0:
+        raise NoSearchResultsException
+
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
+
+def search_movie_by_title(title:str, repo:AbstractRepository):
+    movies = repo.search_movie_by_title(title)
+    if len(movies) == 0:
+        raise NoSearchResultsException
+
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
 # ============================================
 # Functions to convert model entities to dicts
 # ============================================
@@ -104,7 +152,8 @@ def movie_to_dict(movie: Movie):
         'director': movie.director.director_full_name,
         'actors': actors_to_dict(movie.actors),
         'genres': genres_to_dict(movie.genres),
-        'runtime_minutes': movie.runtime_minutes
+        'runtime_minutes': movie.runtime_minutes,
+        'reviews': reviews_to_dict(movie.reviews)
     }
     return movie_dict
 

@@ -4,7 +4,7 @@ import pytest
 from CS235Flix.authentication.services import AuthenticationException
 from CS235Flix.movies import services as movies_services
 from CS235Flix.authentication import services as auth_services
-from CS235Flix.movies.services import NonExistentMovieException
+from CS235Flix.movies.services import NonExistentMovieException, NonExistentActorException, NonExistentDirectorException, NoSearchResultsException
 
 
 def test_can_add_user(in_memory_repo):
@@ -92,7 +92,7 @@ def test_cannot_add_review_by_unknown_user(in_memory_repo):
                                    movie_id=movie_id, rating=rating, repo=in_memory_repo)
 
 
-def test_can_get_article(in_memory_repo):
+def test_can_get_a_movie(in_memory_repo):
     movie_id = 1
     movie_as_dict = movies_services.get_movie(movie_id=movie_id, repo=in_memory_repo)
 
@@ -179,9 +179,89 @@ def test_get_movies_by_id(in_memory_repo):
     # Check that 2 movies were returned from the query
     assert len(movies_as_dict) == 2
 
-    # Check that the article ids returned were 3 and 6
+    # Check that the movie ids returned were 3 and 6
     movie_ids = [movie['id'] for movie in movies_as_dict]
     assert set([3,6]).issubset(movie_ids)
+
+
+def test_search_movies_by_actor_fullname(in_memory_repo):
+    target_actor = "Chris Pratt"
+    movies_as_dict = movies_services.search_movie_by_actor_fullname(target_actor, in_memory_repo)
+
+    # Check that 2 movies were returned from the query
+    assert len(movies_as_dict) == 2
+
+    # Check that the movie ids returned were 1 and 10
+    movie_ids = [movie['id'] for movie in movies_as_dict]
+    assert 1 in movie_ids
+    assert 10 in movie_ids
+
+
+def test_search_movies_by_non_existent_actor(in_memory_repo):
+    non_existent_actor = 'Not Exist'
+    with pytest.raises(NonExistentActorException):
+        movies_as_dict = movies_services.search_movie_by_actor_fullname(non_existent_actor, in_memory_repo)
+
+
+def test_search_movies_by_director_fullname(in_memory_repo):
+    target_director = "M. Night Shyamalan"
+    movies_as_dict = movies_services.search_movie_directed_by_director_fullname(target_director, in_memory_repo)
+
+    # Check that 1 movie is returned from the query
+    assert len(movies_as_dict) == 1
+
+    # Check that the movie id is 3
+    assert movies_as_dict[0]['id'] == 3
+
+
+def test_search_movies_by_non_existent_director_fullname(in_memory_repo):
+    non_existent_director = 'Not Exist'
+    with pytest.raises(NonExistentDirectorException):
+        movies_as_dict = movies_services.search_movie_directed_by_director_fullname(non_existent_director, in_memory_repo)
+
+
+def test_search_by_a_valid_actor_name_and_a_valid_director_name(in_memory_repo):
+    target_actor = 'Ryan Gosling'
+    target_director = 'Damien Chazelle'
+    movies_as_dict = movies_services.search_movie_by_actor_and_director(target_actor, target_director, in_memory_repo)
+
+    # Check that 1 movie is returned from the query
+    assert len(movies_as_dict) == 1
+
+    # Check that the movie id is 7
+    assert movies_as_dict[0]['id'] == 7
+
+
+def test_search_an_invalid_actor_name_or_an_invalid_director_name(in_memory_repo):
+    correct_actor = 'Ryan Gosling'
+    correct_director = 'Damien Chazelle'
+    fake_actor = 'Fake Actor'
+    fake_director = 'Fake Director'
+
+    with pytest.raises(NoSearchResultsException):
+        # Check that no movie is returned for the combination of correct actor and fake director
+        movies_as_dict = movies_services.search_movie_by_actor_and_director(correct_actor, fake_director, in_memory_repo)
+        assert len(movies_as_dict) == 0
+
+        # Check that no movie is returned for the combination of fake actor and correct director
+        movies_as_dict = movies_services.search_movie_by_actor_and_director(fake_actor, correct_director, in_memory_repo)
+        assert len(movies_as_dict) == 0
+
+        # Check that no movie is returned for the combination of fake actor and fake director
+        movies_as_dict = movies_services.search_movie_by_actor_and_director(fake_actor, fake_director, in_memory_repo)
+        assert len(movies_as_dict) == 0
+
+
+def test_search_a_valid_movie_title(in_memory_repo):
+    movies_as_dict = movies_services.search_movie_by_title('La La Land', in_memory_repo)
+    assert movies_as_dict[0]['id'] == 7
+
+
+def test_search_a_non_existent_movie_title(in_memory_repo):
+
+    with pytest.raises(NoSearchResultsException):
+        movies_as_dict = movies_services.search_movie_by_title('3sdf4as5df14as35d1few', in_memory_repo)
+        assert len(movies_as_dict) == 0
 
 
 def test_get_reviews_for_movie(in_memory_repo):

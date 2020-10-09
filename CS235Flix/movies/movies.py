@@ -6,11 +6,12 @@ from flask import request, render_template, redirect, url_for, session
 
 from better_profanity import profanity
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, HiddenField, SubmitField
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms import TextAreaField, HiddenField, SubmitField, DecimalField
+from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
+from CS235Flix.movies.services import NonExistentActorException, NonExistentDirectorException, NoSearchResultsException
 
 import CS235Flix.adapters.repository as repo
-import CS235Flix.utilities as utilities
+import CS235Flix.utilities.utilities as utilities
 import CS235Flix.movies.services as services
 
 from CS235Flix.authentication.authentication import login_required
@@ -19,6 +20,7 @@ from CS235Flix.authentication.authentication import login_required
 movies_blueprint = Blueprint(
     'movies_bp', __name__
 )
+
 
 @movies_blueprint.route('/movies_by_release_year', methods=['GET'])
 def movies_by_release_year():
@@ -48,46 +50,50 @@ def movies_by_release_year():
     # immediately before and after the target year
     movies, previous_year, next_year = services.get_movies_by_release_year(target_year, repo.repo_instance)
 
-    latest_movie_url = None
-    oldest_movie_url = None
-    next_movie_url = None
-    prev_movie_url = None
+    first_page_url = None
+    last_page_url = None
+    previous_page_url = None
+    next_page_url = None
 
     if len(movies) > 0:
         # There is at least one movie for the target release year.
         if previous_year is not None:
             # There are movies on a previous year, so generate URLs for the 'previous' and 'oldest' navigation buttons.
-            prev_movie_url = url_for('movies_bp.movies_by_release_year', year=int(previous_year))
-            oldest_movie_url = url_for('movies_bp.movies_by_release_year', year=int(oldest_movie['release_year']))
+            next_page_url = url_for('movies_bp.movies_by_release_year', year=int(previous_year))  # previous_year
+            last_page_url = url_for('movies_bp.movies_by_release_year', year=int(oldest_movie['release_year']))
 
         # There are movies on a newer year, so generate URLs for the 'next' and 'latest' navigation buttons.
         if next_year is not None:
-            next_movie_url = url_for('movies_bp.movies_by_release_year', year=int(next_year))
-            latest_movie_url = url_for('movies_bp.movies_by_release_year', year=int(latest_movie['release_year']))
+            previous_page_url = url_for('movies_bp.movies_by_release_year', year=int(next_year))
+            first_page_url = url_for('movies_bp.movies_by_release_year', year=int(latest_movie['release_year']))
 
         # Construct urls for viewing movie reviews and adding reviews
         for movie in movies:
-            movie['view_review_for'] = url_for('movies_bp.movies_by_release_year', year=target_year, view_reviews_for=movie['id'])
+            movie['view_review_url'] = url_for('movies_bp.movies_by_release_year', year=target_year,
+                                               view_reviews_for=movie['id'])
             movie['add_review_url'] = url_for('movies_bp.review_on_movie', movie=movie['id'])
 
-        # Generate the webpage to display the article
+        # Generate the webpage to display the movie
         return render_template(
             'movies/movies.html',
             title='Movies',
-            movies_title=target_year,
+            movies_title='Movies released in ' + str(target_year),
             movies=movies,
+            form=SearchForm(),
+            handler_url=url_for('movies_bp.search'),
             selected_movies=utilities.get_selected_movies(len(movies) * 2),
             genre_urls=utilities.get_genres_and_urls(),
-            latest_movie_url=latest_movie_url,
-            oldest_movie_url=oldest_movie_url,
-            next_movie_url=next_movie_url,
-            prev_movie_url=prev_movie_url,
-            show_reviews_for_movie=movie_to_show_reviews
+            first_page_url=first_page_url,
+            last_page_url=last_page_url,
+            previous_page_url=previous_page_url,
+            next_page_url=next_page_url,
+            show_reviews_for_movie=movie_to_show_reviews,
+            title_form=SearchByTitleForm(),
+            handler_url_title=url_for('movies_bp.search_by_title'),
         )
 
     # No movies to show, so return the homepage
     return redirect(url_for('home_bp.home'))
-
 
 
 @movies_blueprint.route('/movies_by_genre', methods=['GET'])
@@ -106,7 +112,6 @@ def movies_by_genre():
         # Convert movie_to_show_reviews from string to int
         movie_to_show_reviews = int(movie_to_show_reviews)
 
-
     if cursor is None:
         # None cursor query parameter, so initialise cursor to start the begining
         cursor = 0
@@ -120,46 +125,50 @@ def movies_by_genre():
     # Retrieve the batch of articles to display on the Web page.
     movies = services.get_movies_by_id(movie_ids[cursor:cursor + movies_per_page], repo.repo_instance)
 
-
-    first_movie_url = None
-    last_movie_url = None
-    next_movie_url = None
-    prev_movie_url = None
+    first_page_url = None
+    last_page_url = None
+    previous_page_url = None
+    next_page_url = None
 
     if cursor > 0:
         # There are preceding movies, so generate URLs for the 'previous' and 'first' navigation buttons.
-        prev_movie_url = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=cursor - movies_per_page)
-        first_movie_url = url_for('movies_bp.movies_by_genre', genre=genre_name)
+        previous_page_url = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=cursor - movies_per_page)
+        first_page_url = url_for('movies_bp.movies_by_genre', genre=genre_name)
 
     if cursor + movies_per_page < len(movie_ids):
         # There are further movies, so generate URLs for the 'next' and last navigation buttons.
-        next_movie_url = url_for('movies_bp.movies_by_genre', tag=genre_name, cursor=cursor + movies_per_page)
+        next_page_url = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=cursor + movies_per_page)
 
-        last_cursor = movies_per_page * int(len(movie_ids)/movies_per_page)
+        last_cursor = movies_per_page * int(len(movie_ids) / movies_per_page)
         if len(movie_ids) % movies_per_page == 0:
             last_cursor -= movies_per_page
-        last_movie_url = url_for('movies_bp.movies_by_genre', tag=genre_name, cursor=last_cursor)
+
+        last_page_url = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=last_cursor)
 
     # Construct urls for viewing movie reviews and adding reviews
     for movie in movies:
-        movie['view_review_url'] = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=cursor, view_reviews_for=movie['id'])
+        movie['view_review_url'] = url_for('movies_bp.movies_by_genre', genre=genre_name, cursor=cursor,
+                                           view_reviews_for=movie['id'])
         movie['add_review_url'] = url_for('movies_bp.review_on_movie', movie=movie['id'])
 
     # Generate the webpage to display the movies
     return render_template(
         'movies/movies.html',
         title='Movies',
-        movie_title='Movies classified as ' + genre_name,
+        movies_title='Movies classified as ' + genre_name,
         movies=movies,
-        selected_movies=utilities.get_selected_movies(),
+        form=SearchForm(),
+        handler_url=url_for('movies_bp.search'),
+        selected_movies=utilities.get_selected_movies(len(movies) * 2),
         genre_urls=utilities.get_genres_and_urls(),
-        first_movie_url=first_movie_url,
-        last_movie_url=last_movie_url,
-        next_movie_url=next_movie_url,
-        prev_movie_url=prev_movie_url,
-        show_reviews_for_movie=movie_to_show_reviews
+        first_page_url=first_page_url,
+        last_page_url=last_page_url,
+        previous_page_url=previous_page_url,
+        next_page_url=next_page_url,
+        show_reviews_for_movie=movie_to_show_reviews,
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title'),
     )
-
 
 
 @movies_blueprint.route('/review', methods=['GET', 'POST'])
@@ -177,18 +186,20 @@ def review_on_movie():
         # Successful POST, i.e. the comment text has passed data validation.
         # Extract the movie id, representing the reviewed movie, from the form.
         movie_id = int(form.movie_id.data)
-        rating = int(form.rating)
+        rating = int(form.rating.data)
 
         # Use the service layer to store the new review
         services.add_review(form.review.data, username, movie_id, rating, repo.repo_instance)
 
         # Retrieve the movie in dict form.
         movie = services.get_movie(movie_id, repo.repo_instance)
-        genre_name = movie['genres'][0]
+        release_year = movie['release_year']
+        # genre_name = movie['genres'][0]
 
         # Cause the web browser to display the page of all movies that have the same genre as the reviewed movie, and
         # display all reviews, including the new review.
-        return redirect(url_for('movies_bp.movies_by_genre', genre=genre_name))
+        # return redirect(url_for('movies_bp.movies_by_genre', genre=genre_name))
+        return redirect(url_for('movies_bp.movies_by_release_year', year=release_year, view_reviews_for=movie_id))
 
     if request.method == 'GET':
         # Request is a HTTP GET to display the form.
@@ -206,13 +217,180 @@ def review_on_movie():
     # the user to enter a review. The generated Web page include a form object.
     movie = services.get_movie(movie_id, repo.repo_instance)
     return render_template(
-        'movies/review_on_movie',
+        'movies/review_on_movie.html',
         title='Edit movie',
         movie=movie,
-        form=form,
-        handler_url=url_for('movies_bp.review_on_movie'),
+        form_review=form,
+        form=SearchForm(),
+        handler_url_review=url_for('movies_bp.review_on_movie'),
+        handler_url=url_for("movies_bp.search"),
         selected_movies=utilities.get_selected_movies(),
-        genre_url=utilities.get_genres_and_urls()
+        genre_urls=utilities.get_genres_and_urls(),
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title'),
+    )
+
+
+@movies_blueprint.route('/search_movies_by_actor_and_or_director', methods=['GET'])
+def search_movies_by_actor_and_or_director():
+    # Read query parameters
+    target_actor = request.args.get('actor')
+    target_director = request.args.get('director')
+    movie_to_show_reviews = request.args.get('view_reviews_for')
+    movies = list()
+    if movie_to_show_reviews is None:
+        # No view-reviews query parameter, so set to a non-existent article id.
+        movie_to_show_reviews = -1
+    else:
+        # Convert movie_to_show_reviews from string to int
+        movie_to_show_reviews = int(movie_to_show_reviews)
+
+    title_message = "No results found"
+    if target_actor is None:
+        target_actor = ""
+    if target_director is None:
+        target_director = ""
+    if len(target_director) == 0 and len(target_actor) != 0:
+        title_message = "Movies played by " + target_actor
+        try:
+            movies = services.search_movie_by_actor_fullname(actor_fullname=target_actor, repo=repo.repo_instance)
+        except NonExistentActorException:
+            pass
+    elif len(target_director) != 0 and len(target_actor) == 0:
+        title_message = "Movies directed by " + target_director
+        try:
+            movies = services.search_movie_directed_by_director_fullname(director_fullname=target_director,
+                                                                         repo=repo.repo_instance)
+        except NonExistentDirectorException:
+            pass
+    elif len(target_director) != 0 and len(target_actor) != 0:
+        title_message = "Movies played by " + target_actor + ", and directed by " + target_director
+        try:
+            movies = services.search_movie_by_actor_and_director(actor_fullname=target_actor,
+                                                                 director_fullname=target_director,
+                                                                 repo=repo.repo_instance)
+        except NoSearchResultsException:
+            pass
+    latest_movie_url = None
+    oldest_movie_url = None
+    next_movie_url = None
+    prev_movie_url = None
+
+    # There is at least one movie played by the target actor
+    for movie in movies:
+        movie['view_review_url'] = url_for('movies_bp.search_movies_by_actor_and_or_director', actor=target_actor,
+                                           view_reviews_for=movie['id'])
+        movie['add_review_url'] = url_for('movies_bp.review_on_movie', movie=movie['id'])
+
+    return render_template(
+        'movies/movies.html',
+        title='Movies',
+        movies_title=title_message,
+        movies=movies,
+        form=SearchForm(),
+        handler_url=url_for('movies_bp.search'),
+        selected_movies=utilities.get_selected_movies(len(movies) * 2),
+        genre_urls=utilities.get_genres_and_urls(),
+        latest_movie_url=latest_movie_url,
+        oldest_movie_url=oldest_movie_url,
+        next_movie_url=next_movie_url,
+        prev_movie_url=prev_movie_url,
+        show_reviews_for_movie=movie_to_show_reviews,
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title'),
+    )
+
+
+@movies_blueprint.route('/search', methods=['GET', 'POST'])
+def search():
+    form = SearchForm()
+
+    if form.validate_on_submit():
+        # Successful POST
+        actor_fullname = form.actor.data
+
+        director_fullname = form.director.data
+
+        return redirect(url_for('movies_bp.search_movies_by_actor_and_or_director', actor=actor_fullname, director=director_fullname))
+
+    return render_template(
+        'search.html',
+        title='Search Movie',
+        form=form,
+        handler_url=url_for('movies_bp.search'),
+        handler_url_review=url_for('movies_bp.review_on_movie'),
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title'),
+    )
+
+
+@movies_blueprint.route('/search_movies_by_title', methods=['GET'])
+def search_movies_by_title():
+    target_title = request.args.get('title')
+    movie_to_show_reviews = request.args.get('view_reviews_for')
+    movies = list()
+
+    if movie_to_show_reviews is None:
+        # No view-reviews query parameter, so set to a non-existent article id.
+        movie_to_show_reviews = -1
+    else:
+        # Convert movie_to_show_reviews from string to int
+        movie_to_show_reviews = int(movie_to_show_reviews)
+
+    if target_title is None:
+        target_title = ""
+
+    try:
+        movies = services.search_movie_by_title(title=target_title, repo=repo.repo_instance)
+    except NoSearchResultsException:
+        pass
+
+    latest_movie_url = None
+    oldest_movie_url = None
+    next_movie_url = None
+    prev_movie_url = None
+
+    for movie in movies:
+        movie['view_review_url'] = url_for('movies_bp.search_movies_by_title', title=target_title,
+                                           view_reviews_for=movie['id'])
+        movie['add_review_url'] = url_for('movies_bp.review_on_movie', movie=movie['id'])
+
+    return render_template(
+        'movies/movies.html',
+        title='Movies',
+        movies_title="Search results of " + target_title,
+        movies=movies,
+        form=SearchForm(),
+        handler_url=url_for('movies_bp.search'),
+        selected_movies=utilities.get_selected_movies(len(movies) * 2),
+        genre_urls=utilities.get_genres_and_urls(),
+        latest_movie_url=latest_movie_url,
+        oldest_movie_url=oldest_movie_url,
+        next_movie_url=next_movie_url,
+        prev_movie_url=prev_movie_url,
+        show_reviews_for_movie=movie_to_show_reviews,
+        title_form=SearchByTitleForm(),
+        handler_url_title=url_for('movies_bp.search_by_title')
+    )
+
+
+@movies_blueprint.route('/search_by_title', methods=['GET', 'POST'])
+def search_by_title():
+    title_form = SearchByTitleForm()
+    if title_form.validate_on_submit():
+        # Successful POST
+        title = title_form.title.data
+
+        return redirect(url_for('movies_bp.search_movies_by_title', title=title))
+
+    return render_template(
+        'search.html',
+        title='Search Movie',
+        form=SearchForm(),
+        title_form=title_form,
+        handler_url_title=url_for('movies_bp.search_by_title'),
+        handler_url=url_for('movies_bp.search'),
+        handler_url_review=url_for('movies_bp.review_on_movie'),
     )
 
 
@@ -228,15 +406,24 @@ class ProfanityFree:
 
 
 class ReviewForm(FlaskForm):
-    review = TextAreaField('Review', [
+    review = TextAreaField('Review:', [
         DataRequired(),
         Length(min=4, message='Your review is too short'),
         ProfanityFree(message='Your review must not contain profanity')])
-    rating = TextAreaField('Please rate the movie at 1 to 10', [
-        DataRequired()])
-    movie_id = HiddenField("Article id")
+    rating = DecimalField('Please leave a rating from 1 to 10:', validators=[
+        DataRequired(message='You must enter a number'),
+        NumberRange(min=1, max=10, message='Your rating must be within the valid range (1 - 10)'),
+    ])
+    movie_id = HiddenField("Movie id")
     submit = SubmitField('Submit')
 
 
+class SearchForm(FlaskForm):
+    actor = TextAreaField('Please enter actor fullname')
+    director = TextAreaField('Please enter director fullname')
+    search = SubmitField('Search')
 
 
+class SearchByTitleForm(FlaskForm):
+    title = TextAreaField('Please enter movie title')
+    search = SubmitField('Search')

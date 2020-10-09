@@ -109,9 +109,8 @@ class AbstractRepository(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_genre(self, genre_name:str) -> Genre:
-        """ Returns a genre with the given genre_name
-            If no genre in the repository has the given genre_name, this method returns None
+    def get_genres(self) -> List[Genre]:
+        """ Returns the genres stored in the repository
         """
         raise NotImplementedError
 
@@ -145,6 +144,37 @@ class AbstractRepository(abc.ABC):
             If there are no Movies on the given year, this method returns an empty list.
         """
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_movies_played_by_an_actor(self, actor_fullname:str) -> List[Movie]:
+        """ Returns a list of movies played by the actor.
+            Returns an empty list if the supplied actor does not exist or the actor hasn't played any movie
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_movies_directed_by_a_director(self, director_fullname:str) -> List[Movie]:
+        """ Returns a list of movies directed by the director
+            Returns an empty list of the supplied directed does not exist or the director didn't direct any movie
+        """
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
+    def search_movies_by_actor_and_director(self, actor_fullname: str, director_name: str):
+        """ Returns a list of movies played by a specific actor AND directed by the specific director
+            Returns an empty list when the search criteria returns nothing
+        """
+        raise NotImplementedError
+
+
+    @abc.abstractmethod
+    def search_movie_by_title(self, title: str) -> List[Movie]:
+        """ Returns a list of movies that matches the title
+            Returns an empty list if no matched movie title found
+        """
+        raise NotImplementedError
+
 
     @abc.abstractmethod
     def get_latest_movie(self):
