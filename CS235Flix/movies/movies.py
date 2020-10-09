@@ -6,7 +6,8 @@ from flask import request, render_template, redirect, url_for, session
 
 from better_profanity import profanity
 from flask_wtf import FlaskForm
-from wtforms import TextAreaField, HiddenField, SubmitField, DecimalField
+from wtforms import TextAreaField, HiddenField, SubmitField
+from wtforms.fields.html5 import SearchField, DecimalField
 from wtforms.validators import DataRequired, Length, ValidationError, NumberRange
 from CS235Flix.movies.services import NonExistentActorException, NonExistentDirectorException, NoSearchResultsException
 
@@ -419,11 +420,11 @@ class ReviewForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    actor = TextAreaField('Please enter actor fullname')
-    director = TextAreaField('Please enter director fullname')
+    actor = SearchField('Please enter actor fullname')
+    director = SearchField('Please enter director fullname')
     search = SubmitField('Search')
 
 
 class SearchByTitleForm(FlaskForm):
-    title = TextAreaField('Please enter movie title')
+    title = SearchField('Please enter movie title')
     search = SubmitField('Search')

@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, session, reques
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Length, ValidationError
-
+from wtforms.fields.html5 import SearchField, DecimalField
 from password_validator import PasswordValidator
 
 from functools import wraps
@@ -147,11 +147,11 @@ class LoginForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    actor = TextAreaField('Please enter actor fullname')
-    director = TextAreaField('Please enter director fullname')
+    actor = SearchField('Please enter actor fullname')
+    director = SearchField('Please enter director fullname')
     search = SubmitField('Search')
 
 
 class SearchByTitleForm(FlaskForm):
-    title = TextAreaField('Please enter movie title')
+    title = SearchField('Please enter movie title')
     search = SubmitField('Search')

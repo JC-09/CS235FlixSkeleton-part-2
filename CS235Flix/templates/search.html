@@ -5,18 +5,18 @@
         <h1>Search Box</h1>
     </header>
     <br>
-    <h3>Search by movies actor and/or director</h3> <br>
+    <h3>Search movies by exact actor and/or director fullname</h3> <br>
    <form action="{{handler_url}}" method="post">
        {{form.csrf_token}}
         <div>
             {{form.actor.label}}
             <br>
-            {{form.actor(size=300, class="textarea", rows="1",  wrap="hard") }}
+            {{form.actor }}
             <br>
             <br>
             {{form.director.label}}
             <br>
-            {{form.director(size=300, class="textarea", rows="1",  wrap="hard")}}
+            {{form.director}}
         </div>
        {{form.search}}
    </form>
@@ -29,12 +29,13 @@
     </div>
 
     <h3>Search by movie title</h3>
+    <br>
     <form action="{{handler_url_title}}" method="post">
         {{ title_form.csrf_token }}
         <div>
             {{title_form.title.label}}
             <br>
-            {{title_form.title(size=300, class="textarea", rows='1')}}
+            {{title_form.title}}
         </div>
         {{title_form.search}}
 
