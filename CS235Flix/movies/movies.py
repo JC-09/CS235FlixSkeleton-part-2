@@ -17,8 +17,7 @@ import CS235Flix.movies.services as services
 
 from CS235Flix.authentication.authentication import login_required
 
-import imdb
-access = imdb.IMDb()
+
 # Configure Blueprint
 movies_blueprint = Blueprint(
     'movies_bp', __name__
@@ -52,23 +51,28 @@ def movies_by_release_year():
     # Fetch movie(s) from the target year. This call also returns the previous and next release year for movies
     # immediately before and after the target year
     movies, previous_year, next_year = services.get_movies_by_release_year(target_year, repo.repo_instance)
+
     num_of_movies_found = len(movies)
     first_page_url = None
-    last_page_url = None
+    # last_page_url = None
     previous_page_url = None
     next_page_url = None
+    last_page_url = url_for('movies_bp.movies_by_release_year', year=int(oldest_movie['release_year']))
+    first_page_url = url_for('movies_bp.movies_by_release_year', year=int(latest_movie['release_year']))
 
     if num_of_movies_found > 0:
-        # There is at least one movie for the target release year.
-        if previous_year is not None:
-            # There are movies on a previous year, so generate URLs for the 'previous' and 'oldest' navigation buttons.
-            next_page_url = url_for('movies_bp.movies_by_release_year', year=int(previous_year))  # previous_year
-            last_page_url = url_for('movies_bp.movies_by_release_year', year=int(oldest_movie['release_year']))
+        previous_year = int(movies[0]['release_year']) - 1
+        next_year = int(movies[0]['release_year']) + 1
 
-        # There are movies on a newer year, so generate URLs for the 'next' and 'latest' navigation buttons.
-        if next_year is not None:
-            previous_page_url = url_for('movies_bp.movies_by_release_year', year=int(next_year))
-            first_page_url = url_for('movies_bp.movies_by_release_year', year=int(latest_movie['release_year']))
+        next_page_url = url_for('movies_bp.movies_by_release_year', year=previous_year ) # previous_year
+
+        previous_page_url = url_for('movies_bp.movies_by_release_year', year=next_year)
+
+        if previous_year < 2006:
+            next_page_url = None
+
+        if next_year > 2016:
+            previous_page_url = None
 
         # Construct urls for viewing movie reviews and adding reviews
         for movie in movies:

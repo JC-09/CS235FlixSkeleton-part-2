@@ -126,7 +126,7 @@ def test_cannot_get_movie_with_non_existent_id(in_memory_repo):
 def test_get_latest_movie(in_memory_repo):
     movie_as_dict = movies_services.get_latest_movie(in_memory_repo)
 
-    assert movie_as_dict['id'] == 9
+    assert movie_as_dict['id'] == 7
 
 
 def test_get_oldest_movie(in_memory_repo):

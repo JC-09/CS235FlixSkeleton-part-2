@@ -156,12 +156,14 @@ class MemoryRepository(AbstractRepository):
         movie = None
 
         if len(self._movies) > 0:
-            movie = self._movies[-1]
+            self._movies.sort(key=lambda x: x.release_year, reverse=True)
+            movie = self._movies[0]
         return movie
 
     def get_oldest_movie(self):
         movie = None
         if len(self._movies) > 0:
+            self._movies.sort(key=lambda x: x.release_year, reverse=False)
             movie = self._movies[0]
         return movie
 

@@ -66,7 +66,7 @@ def test_repository_does_not_retrieve_any_movie_when_there_are_no_movies_for_a_g
 
 def test_repository_can_get_the_latest_movie(in_memory_repo):
     movie = in_memory_repo.get_latest_movie()
-    assert movie.title == "The Lost City of Z"
+    assert movie.title == 'La La Land'
     assert movie.release_year == 2016
 
 def test_repository_can_get_the_oldest_movie(in_memory_repo):
