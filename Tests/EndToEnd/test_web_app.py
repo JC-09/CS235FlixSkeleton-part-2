@@ -41,7 +41,7 @@ def test_login(client, auth):  # Test the login method in authentication.py
 
     # Check that a successful login generates a redirect to the homepage
     response = auth.login()
-    assert response.headers['Location'] == "http://localhost/"
+    assert response.headers['Location'] == "http://localhost/suggest"
 
     # Check that a session has been created for the logged-in user
     with client:
@@ -63,7 +63,7 @@ def test_index(client):
     # Check that we can retrieve the home page.
     response = client.get('/')
     assert response.status_code == 200
-    assert b'COMPSCI235' in response.data
+    assert b'CS235' in response.data
 
 
 def test_login_required_to_review(client):
