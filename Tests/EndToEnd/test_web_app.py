@@ -81,7 +81,7 @@ def test_review(client, auth):
         '/review',
         data={'review': 'what a great movie!', 'rating': 10, 'movie_id': 1}
     )
-    assert response.headers['Location'] == 'http://localhost/movies_by_release_year?year=2014&view_reviews_for=1'
+    assert response.headers['Location'] == 'http://localhost/search_movies_by_title?title=Guardians+of+the+Galaxy'
 
 
 @pytest.mark.parametrize(('review', 'rating', 'messages'), (
@@ -190,3 +190,21 @@ def test_search_by_movie_title(client):
     assert response.status_code == 200
     assert b'Passengers' in response.data
     assert b'2016' in response.data
+
+
+def test_can_suggest_movies_to_a_logged_in_user(client, auth):
+    # Login a user
+    auth.login()
+
+    # Check that we can retrieve suggestions for the logged in user:
+    response = client.get('/suggest')
+    assert response.status_code == 200
+
+    # Check that we a desired movie is returned
+    assert b'Guardians of the Galaxy' in response.data
+
+
+def test_repository_will_not_suggest_movies_un_logged_in_user(client):
+    # Check that we can retrieve suggestions for the logged in user:
+    response = client.get('/suggest')
+    assert response.headers['Location'] == 'http://localhost/authentication/login'

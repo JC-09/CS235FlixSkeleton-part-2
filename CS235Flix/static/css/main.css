@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Josefin+Sans&display=swap');
+
 
 * {
   margin: 0;
@@ -20,14 +20,14 @@ h1 {
     font-weight: bold;
 }
 
-img {
+/*img {
   display: block;
-  width: 500px;
+  height: 500px;
   height: auto;
   padding: 15px;
   margin-left: auto;
   margin-right: auto;
-}
+}*/
 
 .img-small {
     display: block;
@@ -69,9 +69,22 @@ img {
     border-radius: 8px;
     display: inline-block;
     padding: 10px;
+    /*margin: 5px;*/
+    float:left;
+    #opacity: 0.6;
+}
+
+
+.btn-movie-genre-on-review-page{
+    background-color: #05e1fa;
+    order: none;
+    border-radius: 8px;
+    display: inline-block;
+    padding: 10px;
     margin: 5px;
     float:left;
     #opacity: 0.6;
+
 }
 
 .btn-general:hover {
@@ -164,7 +177,7 @@ img {
 
 
 #sidebar {
-    background-color: #8acd32;
+    background-color:#bab6b6; /*#8acd32;*/
     color: #717171;
     width: 350px;
     min-height: 100vh;
@@ -174,6 +187,7 @@ img {
     right:0;
     float:right;
     position:fixed;
+    z-index:1;
 }
 
 #article-header {
@@ -278,3 +292,31 @@ input[type='number']{
 }
 
 
+.main-page-content{
+    display:inline-block;
+    flex-direction:row;
+    flex-wrap:wrap;
+    width:100%;
+    justify-content: space-around;
+}
+
+.main-page-movie{
+    display:inline-flex;
+    flex-direction:column;
+    width:300px;
+    margin:20px;
+    height:400px;
+    position:relative;
+    text-align:center;
+}
+
+.movie-content{
+    display:inline-block;
+    flex-direction:row;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    padding:10px;
+    margin:10px;
+    border-radius:10px;
+    width:100%;
+}

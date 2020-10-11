@@ -138,6 +138,21 @@ def search_movie_by_title(title:str, repo:AbstractRepository):
     movies_as_dict = movies_to_dict(movies)
     return movies_as_dict
 
+
+def get_top_6_movies_by_revenue(repo:AbstractRepository):
+    movies = repo.get_top_6_highest_revenue_movies()
+    if len(movies) == 0:
+        raise NoSearchResultsException
+
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
+
+def get_suggestions_for_a_user(username: str, repo: AbstractRepository):
+    movies = repo.get_suggestion_for_user(username=username)
+    movies_as_dict = movies_to_dict(movies)
+    return movies_as_dict
+
 # ============================================
 # Functions to convert model entities to dicts
 # ============================================
@@ -153,7 +168,8 @@ def movie_to_dict(movie: Movie):
         'actors': actors_to_dict(movie.actors),
         'genres': genres_to_dict(movie.genres),
         'runtime_minutes': movie.runtime_minutes,
-        'reviews': reviews_to_dict(movie.reviews)
+        'reviews': reviews_to_dict(movie.reviews),
+        'revenue': movie.revenue
     }
     return movie_dict
 

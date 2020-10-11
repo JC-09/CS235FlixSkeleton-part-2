@@ -286,11 +286,23 @@ def test_get_reviews_for_movie_without_reviews(in_memory_repo):
     assert len(reviews_as_dict) == 0
 
 
+def test_get_top_5_movies_by_revenue(in_memory_repo):
+    movies = movies_services.get_top_6_movies_by_revenue(in_memory_repo)
+    assert len(movies) == 6
+
+    assert movies[0]['title'] == "Guardians of the Galaxy"
+    assert movies[1]['title'] == "Suicide Squad"
+    assert movies[2]['title'] == "Sing"
+    assert movies[3]['title'] == "La La Land"
+    assert movies[4]['title'] == "Split"
+    assert movies[5]['title'] == "Prometheus"
 
 
-
-
-
+def test_get_suggestions_for_a_user(in_memory_repo):
+    username = "thorke"
+    suggestions = movies_services.get_suggestions_for_a_user(username=username, repo=in_memory_repo)
+    assert len(suggestions) == 1
+    assert suggestions[0]['title'] == "Guardians of the Galaxy"
 
 
 

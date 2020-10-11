@@ -371,3 +371,51 @@ def test_repository_does_not_add_a_review_without_a_movie_properly_attached(in_m
         in_memory_repo.add_review(review)
 
 
+def test_repository_can_retrieve_the_top_5_highest_revenue_movies(in_memory_repo):
+    movies = in_memory_repo.get_top_6_highest_revenue_movies()
+    assert len(movies) == 6
+
+    assert movies[0].title == "Guardians of the Galaxy"
+    assert movies[1].title == "Suicide Squad"
+    assert movies[2].title == "Sing"
+    assert movies[3].title == "La La Land"
+    assert movies[4].title == "Split"
+    assert movies[5].title == "Prometheus"
+
+
+def test_repository_can_retrieve_a_list_of_movies_reviewed_by_a_user(in_memory_repo):
+    movies = in_memory_repo.get_user_reviewed_movie("thorke")
+    assert len(movies) == 1
+    assert movies[0].id == 1
+
+
+def test_repository_can_get_a_list_of_genres_based_on_a_users_reviewed_movies(in_memory_repo):
+    guardian_of_the_galaxy = in_memory_repo.get_movie_by_index(1)
+    reviewed_movies = [guardian_of_the_galaxy]
+    genre_list = in_memory_repo.get_user_interested_genre_from_reviewed_movies(reviewed_movies)
+
+    assert len(genre_list) == 3
+    assert genre_list[0].genre_name == "Action"
+    assert genre_list[1].genre_name == "Adventure"
+    assert genre_list[2].genre_name == "Sci-Fi"
+
+
+def test_repository_can_retrieve_the_top_movie_classified_by_a_genre(in_memory_repo):
+    list_of_genres = in_memory_repo.get_genres()
+    action = [genre for genre in list_of_genres if genre.genre_name == "Action"]
+    action = action[0]
+    top_action = in_memory_repo.get_top_movie_by_genre(action)
+    assert top_action.title == "Guardians of the Galaxy"
+
+    fantasy = [genre for genre in list_of_genres if genre.genre_name == "Fantasy"]
+    fantasy = fantasy[0]
+    top_fantasy = in_memory_repo.get_top_movie_by_genre(fantasy)
+    assert top_fantasy.title == "Suicide Squad"
+
+
+def test_repository_can_suggest_desired_movies_to_a_user(in_memory_repo):
+    username = "thorke"
+    suggestions = in_memory_repo.get_suggestion_for_user(username=username)
+
+    assert len(suggestions) == 1
+    assert in_memory_repo.get_movie_by_index(1) in suggestions

@@ -277,6 +277,44 @@ class MemoryRepository(AbstractRepository):
             return index
         raise ValueError
 
+    def get_top_6_highest_revenue_movies(self):
+        # Sort the movies in the repository by revenue in descending order:
+        self._movies.sort(key=lambda x: x.revenue, reverse=True)
+        return self._movies[:6]  # Return the top 5
+
+    def get_user_reviewed_movie(self, username:str):
+        user = self.get_user(username)
+        movies = list()
+        if user is not None:
+            for current_review in user.reviews:
+                movies.append(current_review.movie)
+        return movies
+
+    def get_user_interested_genre_from_reviewed_movies(self, reviewed_movies: List[Movie]) -> List[Genre]:
+        genre_list = list()
+        if len(reviewed_movies) > 0:
+            for movie in reviewed_movies:
+                for genre in movie.genres:
+                    if genre not in genre_list:
+                        genre_list.append(genre)
+        return genre_list
+
+    def get_top_movie_by_genre(self, genre: Genre) -> Movie:
+        movies_classified_by_genre = list(genre.classified_movies)
+        movies_classified_by_genre.sort(key=lambda x: x.revenue, reverse=True)
+        return movies_classified_by_genre[0]
+
+    def get_suggestion_for_user(self, username: str) -> List[Movie]:
+        user_reviewed_movies = self.get_user_reviewed_movie(username)
+        user_interested_genres = self.get_user_interested_genre_from_reviewed_movies(user_reviewed_movies)
+        suggestion = list()
+        if len(user_interested_genres) > 0:
+            for genre in user_interested_genres:
+                suggested_movie = self.get_top_movie_by_genre(genre)
+                if suggested_movie not in suggestion:
+                    suggestion.append(suggested_movie)
+        return suggestion
+
 
 def read_csv_file(filename: str):
     with open(filename, encoding='utf-8-sig') as infile:
@@ -299,7 +337,10 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
     for data_row in read_csv_file(os.path.join(data_path, "movies.csv")):
         movie_index = int(data_row[0])
         title = data_row[1]
-
+        try:
+            movie_revenue = float(data_row[10])
+        except ValueError:
+            movie_revenue = 0
         list_of_genre_names = data_row[2].split(",")
         list_of_genres = [Genre(genre_name) for genre_name in list_of_genre_names]  # can have duplicate
 
@@ -318,6 +359,8 @@ def load_movies_actors_directors_genre_description(data_path: str, repo: MemoryR
             release_year=release_year,
             id=movie_index
         )
+
+        movie.set_revenue(revenue=movie_revenue)
 
         # Add movie to repo
         repo.add_movie(movie)

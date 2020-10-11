@@ -161,6 +161,11 @@ class AbstractRepository(abc.ABC):
 
 
     @abc.abstractmethod
+    def get_top_6_highest_revenue_movies(self) -> List[Movie]:
+        """ Returns a list of the top 5 highest revenue movies in the repository """
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def search_movies_by_actor_and_director(self, actor_fullname: str, director_name: str):
         """ Returns a list of movies played by a specific actor AND directed by the specific director
             Returns an empty list when the search criteria returns nothing
@@ -314,4 +319,29 @@ class AbstractRepository(abc.ABC):
     @abc.abstractmethod
     def get_watchlist(self) -> List[WatchList]:
         """ Returns a list of watchlist in the repository"""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_user_reviewed_movie(self, username:str) -> List[Movie]:
+        """ Returns a list of movies reviewed by the login user
+            If a user is not logged in, the web application will redirect the user to login
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_user_interested_genre_from_reviewed_movies(self, reviewed_movies: List[Movie]) -> List[Movie]:
+        """ Returns a list of genres based on the user's reviewed movie.
+            Returns an empty list of the input list is empty.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_top_movie_by_genre(self, genre:Genre) -> Movie:
+        """ Returnes a movie with the highest revenue classified by the genre """
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_suggestion_for_user(self, username: str) -> List[Movie]:
+        """ Returns a list of movies recommend for the user
+        """
         raise NotImplementedError

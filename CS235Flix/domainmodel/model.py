@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List
-
+# import imdb
 
 class Actor:
     def __init__(self, actor_full_name: str):
@@ -102,6 +102,7 @@ class Genre:
             self.__genre_name = genre_name.strip()
             self.__classified_movies = list()
 
+
     @property
     def classified_movies(self):
         return iter(self.__classified_movies)
@@ -148,6 +149,8 @@ class Movie:
         self.__genres = list()
         self.__reviews = list()
         self.__runtime_minutes = 0
+        self.__revenue = 0
+        # self.__cover_url = None
 
         if title != "" and type(title) is str and type(release_year) is int and release_year >= 1900:
             self.__title = title
@@ -161,6 +164,17 @@ class Movie:
         else:
             self.__title = None
             self.__release_year = None
+        # access = imdb.IMDb()
+        # possible_movies = access.search_movie(self.__title)
+        # self.__cover_url = possible_movies[0]['cover url']
+
+    # @property
+    # def cover_url(self) -> str:
+    #     return self.__cover_url
+
+    @property
+    def revenue(self) -> float:
+        return self.__revenue
 
     @property
     def title(self) -> str:
@@ -230,6 +244,10 @@ class Movie:
             else:
                 raise ValueError
         return False
+
+    def set_revenue(self, revenue:float):
+        if revenue >= 0:
+            self.__revenue = revenue
 
     def add_actor(self, actor: Actor) -> bool:
         if isinstance(actor, Actor):

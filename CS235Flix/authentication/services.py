@@ -34,6 +34,7 @@ def add_user(username: str, password: str, repo: AbstractRepository):
     repo.add_user(user)
 
 
+
 def get_user(username: str, repo: AbstractRepository):
     user = repo.get_user(username)
     if user is None:
